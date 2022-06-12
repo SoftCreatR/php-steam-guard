@@ -1,0 +1,45 @@
+name: Test
+
+on:
+  push:
+    paths:
+      - '**.php'
+      - 'composer.json'
+    branches:
+      - 'main'
+  pull_request:
+    paths:
+      - '**.php'
+      - 'composer.json'
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ '7.4', '8.0', '8.1' ]
+    name: PHP ${{ matrix.php }} Test
+
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v3
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@2.19.0
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: json
+        env:
+          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup problem matchers for PHPUnit
+        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction
+
+      - name: Execute tests
+        run: composer test -- -v
