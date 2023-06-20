@@ -7,6 +7,7 @@ use RuntimeException;
 use function base64_decode;
 use function floor;
 use function hash_hmac;
+use function intval;
 use function pack;
 use function strlen;
 use function unpack;
@@ -65,7 +66,7 @@ class CodeGen
         $code = '';
 
         for ($i = 0; $i < 5; ++$i) {
-            $code .= self::$steamChars[$codePoint % $charLen];
+            $code .= self::$steamChars[intval($codePoint) % $charLen];
             $codePoint /= $charLen;
         }
 
