@@ -1,45 +1,49 @@
-name: Test
+name: Tests
 
 on:
   push:
     paths:
       - '**.php'
+      - '.github/workflows/Test.yml'
       - 'composer.json'
-    branches:
-      - 'main'
+      - 'phpcs.xml.dist'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml.dist'
   pull_request:
     paths:
       - '**.php'
+      - '.github/workflows/Test.yml'
       - 'composer.json'
-    branches:
-      - 'main'
+      - 'phpcs.xml.dist'
+      - 'phpstan.neon.dist'
+      - 'phpunit.xml.dist'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  run:
+  test:
+    name: PHP ${{ matrix.php }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        php: [ '7.4', '8.0', '8.1', '8.2' ]
-    name: PHP ${{ matrix.php }} Test
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5', '8.6']
 
     steps:
-      - name: Git checkout
-        uses: actions/checkout@v3
+      - name: Check out repository
+        uses: actions/checkout@v7
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@2.19.0
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: json
-        env:
-          COMPOSER_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup problem matchers for PHPUnit
-        run: echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+          coverage: none
+          tools: composer:v2
 
       - name: Install dependencies
-        run: composer update --prefer-dist --no-interaction
+        run: composer update --prefer-dist --no-interaction --no-progress
 
-      - name: Execute tests
-        run: composer test -- -v
+      - name: Run checks
+        run: composer check
